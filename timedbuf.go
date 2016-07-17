@@ -22,16 +22,18 @@ import (
 
 //TimedBuf implements a buffer that gathers items until either the buffer size or a specified time limit is reached
 type TimedBuf struct {
-	mu      sync.Mutex
-	buffer  chan interface{}
-	ticker  *time.Ticker
-	flushFn func([]interface{})
+	mu          sync.Mutex
+	maxDelay    time.Duration
+	lastFlushTS time.Time
+	buffer      chan interface{}
+	ticker      *time.Ticker
+	flushFn     func([]interface{})
 }
 
 func New(size int, maxDelay time.Duration, flushFn func([]interface{})) *TimedBuf {
 	buffer := make(chan interface{}, size)
 	ticker := time.NewTicker(maxDelay)
-	tb := &TimedBuf{buffer: buffer, ticker: ticker, flushFn: flushFn}
+	tb := &TimedBuf{buffer: buffer, ticker: ticker, flushFn: flushFn, lastFlushTS: time.Now(), maxDelay: maxDelay}
 	tb.startLoop()
 	return tb
 }
@@ -40,7 +42,9 @@ func (tb *TimedBuf) startLoop() {
 	go func() {
 		for _ = range tb.ticker.C {
 			tb.mu.Lock()
-			tb.doFlush()
+			if time.Since(tb.lastFlushTS) > tb.maxDelay {
+				tb.doFlush()
+			}
 			tb.mu.Unlock()
 		}
 	}()
@@ -54,6 +58,7 @@ func (tb *TimedBuf) doFlush() {
 			tmp[i] = <-tb.buffer
 		}
 		tb.flushFn(tmp)
+		tb.lastFlushTS = time.Now()
 	}
 }
 
