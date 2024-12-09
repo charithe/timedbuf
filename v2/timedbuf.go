@@ -40,7 +40,7 @@ func New[T any](size int, maxDelay time.Duration, flushFn func([]T)) *TimedBuf[T
 
 func (tb *TimedBuf[T]) startLoop() {
 	go func() {
-		for _ = range tb.ticker.C {
+		for range tb.ticker.C {
 			tb.mu.Lock()
 			if time.Since(tb.lastFlushTS) > tb.maxDelay {
 				tb.doFlush()
