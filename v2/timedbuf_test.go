@@ -25,8 +25,8 @@ import (
 )
 
 func TestFlushOnFull(t *testing.T) {
-	var bufferContents []interface{}
-	tb := New(5, 30*time.Second, func(items []interface{}) { bufferContents = append(bufferContents, items...) })
+	var bufferContents []any
+	tb := New(5, 30*time.Second, func(items []any) { bufferContents = append(bufferContents, items...) })
 	for i := 0; i < 8; i++ {
 		tb.Put(fmt.Sprintf("item%d", i))
 		if i < 5 {
@@ -42,8 +42,8 @@ func TestFlushOnFull(t *testing.T) {
 }
 
 func TestFlushOnTimer(t *testing.T) {
-	var bufferContents []interface{}
-	tb := New(5, 1*time.Second, func(items []interface{}) { bufferContents = append(bufferContents, items...) })
+	var bufferContents []any
+	tb := New(5, 1*time.Second, func(items []any) { bufferContents = append(bufferContents, items...) })
 	for i := 0; i < 3; i++ {
 		tb.Put(fmt.Sprintf("item%d", i))
 		assert.Equal(t, 0, len(bufferContents))

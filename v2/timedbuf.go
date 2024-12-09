@@ -20,18 +20,18 @@ import (
 	"time"
 )
 
-//TimedBuf implements a buffer that gathers items until either the buffer size or a specified time limit is reached
+// TimedBuf implements a buffer that gathers items until either the buffer size or a specified time limit is reached
 type TimedBuf struct {
 	mu          sync.Mutex
 	maxDelay    time.Duration
 	lastFlushTS time.Time
-	buffer      chan interface{}
+	buffer      chan any
 	ticker      *time.Ticker
-	flushFn     func([]interface{})
+	flushFn     func([]any)
 }
 
-func New(size int, maxDelay time.Duration, flushFn func([]interface{})) *TimedBuf {
-	buffer := make(chan interface{}, size)
+func New(size int, maxDelay time.Duration, flushFn func([]any)) *TimedBuf {
+	buffer := make(chan any, size)
 	ticker := time.NewTicker(maxDelay)
 	tb := &TimedBuf{buffer: buffer, ticker: ticker, flushFn: flushFn, lastFlushTS: time.Now(), maxDelay: maxDelay}
 	tb.startLoop()
@@ -53,7 +53,7 @@ func (tb *TimedBuf) startLoop() {
 func (tb *TimedBuf) doFlush() {
 	bufLen := len(tb.buffer)
 	if bufLen > 0 {
-		tmp := make([]interface{}, bufLen)
+		tmp := make([]any, bufLen)
 		for i := 0; i < bufLen; i++ {
 			tmp[i] = <-tb.buffer
 		}
@@ -62,7 +62,7 @@ func (tb *TimedBuf) doFlush() {
 	}
 }
 
-func (tb *TimedBuf) Put(items ...interface{}) {
+func (tb *TimedBuf) Put(items ...any) {
 	tb.mu.Lock()
 	defer tb.mu.Unlock()
 	for _, i := range items {
