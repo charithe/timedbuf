@@ -24,3 +24,21 @@ tb.Put("baz")
 ...
 ```
 
+Generics implementation
+-----------------------
+
+`go get github.com/charithe/timedbuf/v2`
+
+```go
+// define a flush function that will be called whenever the buffer is full or the time period has elapsed
+func flushFunc(items []string){
+    // flush logic
+}
+
+// Initialize and use the buffer
+tb := timedbuf.New(100, 10 * time.Second, flushFunc)
+defer tb.Close()
+tb.Put("foo", "bar")
+tb.Put("baz")
+...
+```
